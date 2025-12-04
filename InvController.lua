@@ -155,6 +155,33 @@ local v_u_301 = {
         end
     end,
     
+    ["RemoveFromInv"] = function(slot)
+        require(l__LocalPlayer__1.Character:WaitForChild("Animations"))
+        local mods = require(l__LocalPlayer__1.Character:WaitForChild("Modifiers"))
+        local Background = FindBackground()
+        Background:WaitForChild("Equipped")
+        Background:WaitForChild("Body")
+        Background:WaitForChild("Inv")
+        
+        if not _G.__data_busy then
+            Background.Saving.Visible = true
+            _G.__data_busy = true
+            
+            local children = slot:GetChildren()
+            for i = 1, #children do
+                if children[i]:IsA("Tool") or children[i].Name == "Interact" then
+                    children[i]:Destroy()
+                    _G.GUIsubmenuopen = false
+                end
+            end
+            
+            slot.Image = ""
+            slot.Stack.Visible = false
+            v_u_301["AddToDataStore"]()
+            _G.__data_busy = false
+        end
+    end,
+    
     ["RefillAllAmmo"] = function()
         local changed = false
         require(l__LocalPlayer__1.Character:WaitForChild("Animations"))
