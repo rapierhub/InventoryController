@@ -120,12 +120,12 @@ local v_u_301 = {
         end)
 
         if added then
-            v_u_301.AddToDataStore()
+            v_u_301["AddToDataStore"]()
             _G.__data_busy = false
             return true
         end
         
-        v_u_301.AddToDataStore()
+        v_u_301["AddToDataStore"]()
         _G.__data_busy = false
         return false
     end,
@@ -162,7 +162,7 @@ local v_u_301 = {
             
             slot.Image = ""
             slot.Stack.Visible = false
-            v_u_301.AddToDataStore()
+            v_u_301["AddToDataStore"]()
             _G.__data_busy = false
         end
     end,
@@ -243,7 +243,7 @@ local v_u_301 = {
                 Background.Saving.Visible = false
             end)
             
-            v_u_301.AddToDataStore()
+            v_u_301["AddToDataStore"]()
             _G.__data_busy = false
         end
         return changed
