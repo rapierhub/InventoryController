@@ -1,24 +1,6 @@
 local l__LocalPlayer__1 = game.Players.LocalPlayer
 local dataBusy = false
 
-local function setupModifiers()
-    local modifiers = workspace:FindFirstChild("Modifiers")
-    if not modifiers then
-        modifiers = Instance.new("Folder")
-        modifiers.Name = "Modifiers"
-        modifiers.Parent = workspace
-    end
-    
-    local weight = modifiers:FindFirstChild("Weight")
-    if not weight then
-        weight = Instance.new("Folder")
-        weight.Name = "Weight"
-        weight.Parent = modifiers
-    end
-end
-
-setupModifiers()
-
 local function getRemote()
     return game.ReplicatedStorage:FindFirstChild("YourRemoteFunction") or
            game.Workspace:FindFirstChild("RemoteFunction")
@@ -62,7 +44,7 @@ function AddToDataStore()
                 Stack = stackValue and stackValue.Value or 0
             }
         else
-            u3.Equipped[i] = { Name = nil, Stack = nil }
+            u3.Eipped[i] = { Name = nil, Stack = nil }
         end
     end
 
@@ -110,37 +92,6 @@ function AddToDataStore()
     end)
 end
 
-AddModifier = function(p1, p2)
-    if not p1 or not p1.Parent then return end
-    
-    local modifiersFolder = workspace:FindFirstChild("Modifiers")
-    if not modifiersFolder then return end
-
-    local weightFolder = modifiersFolder:FindFirstChild("Weight")
-    if not weightFolder then return end
-
-    local container = Instance.new("Folder")
-    container.Name = p2
-    container.Parent = weightFolder
-
-    local clonedValue = p1:Clone()
-    clonedValue.Name = "Value"
-    clonedValue.Parent = container
-end
-
-RemoveModifier = function(p3, p4)
-    local modifiersFolder = workspace:FindFirstChild("Modifiers")
-    if not modifiersFolder then return end
-
-    local weightFolder = modifiersFolder:FindFirstChild("Weight")
-    if not weightFolder then return end
-
-    local modifierContainer = weightFolder:FindFirstChild(p4)
-    if modifierContainer then
-        modifierContainer:Destroy()
-    end
-end
-
 local MainFunction = {}
 
 function MainFunction.AddToInvLOL(p18)
@@ -186,11 +137,6 @@ function MainFunction.AddToInvLOL(p18)
         local slot = Inv:FindFirstChild(tostring(i))
         if slot and not slot:FindFirstChild("Interact") and not itemAdded then
             itemAdded = true
-
-            local weightMod = v126:FindFirstChild("Configuration") and v126.Configuration:FindFirstChild("Weight")
-            if weightMod then
-                AddModifier(weightMod, v126.Name)
-            end
 
             v126.Parent = slot
 
