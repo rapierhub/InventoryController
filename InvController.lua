@@ -126,8 +126,7 @@ local v_u_301 = {
         return false
     end,
     
-    ["DropInvItem"] = function(slot, itemConfig)
-        local itemObj = itemConfig.Configuration.ReplicatedStorageObject.Value
+    ["DropInvItem"] = function(slot)
         require(l__LocalPlayer__1.Character:WaitForChild("Animations"))
         local mods = require(l__LocalPlayer__1.Character:WaitForChild("Modifiers"))
         local Background = FindBackground()
@@ -136,7 +135,6 @@ local v_u_301 = {
         Background:WaitForChild("Inv")
         
         if not _G.__data_busy then
-            v_u_2:FireServer("dropInvItem", itemObj)
             Background.Saving.Visible = true
             _G.__data_busy = true
             
