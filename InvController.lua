@@ -1,6 +1,24 @@
 local l__LocalPlayer__1 = game.Players.LocalPlayer
 local dataBusy = false
 
+local function setupModifiers()
+    local modifiers = workspace:FindFirstChild("Modifiers")
+    if not modifiers then
+        modifiers = Instance.new("Folder")
+        modifiers.Name = "Modifiers"
+        modifiers.Parent = workspace
+    end
+    
+    local weight = modifiers:FindFirstChild("Weight")
+    if not weight then
+        weight = Instance.new("Folder")
+        weight.Name = "Weight"
+        weight.Parent = modifiers
+    end
+end
+
+setupModifiers()
+
 local function getRemote()
     return game.ReplicatedStorage:FindFirstChild("YourRemoteFunction") or
            game.Workspace:FindFirstChild("RemoteFunction")
