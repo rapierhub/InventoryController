@@ -90,10 +90,6 @@ local v_u_301 = {
                     local slot = Inv[i]
                     if not slot:FindFirstChild("Interact") and not added then
                         added = true
-                        local weightConfig = clonedItem.Configuration.Weight
-                        local weightClone = weightConfig:Clone()
-                        weightClone.Parent = weightConfig.Parent
-                        weightClone.Name = clonedItem.Name
                         
                         clonedItem.Parent = slot
                         interactClone.Parent = slot
@@ -147,14 +143,6 @@ local v_u_301 = {
             local children = slot:GetChildren()
             for i = 1, #children do
                 if children[i]:IsA("Tool") or children[i].Name == "Interact" then
-                    if children[i]:IsA("Tool") then
-                        local weightConfig = children[i].Configuration.Weight
-                        local folder = weightConfig.Parent:FindFirstChild(weightConfig.Name)
-                        if folder then
-                            local mod = folder:FindFirstChild(children[i].Name)
-                            if mod then mod:Destroy() end
-                        end
-                    end
                     children[i]:Destroy()
                     _G.GUIsubmenuopen = false
                 end
