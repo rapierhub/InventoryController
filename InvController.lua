@@ -119,9 +119,13 @@ AddModifier = function(p1, p2)
     local weightFolder = modifiersFolder:FindFirstChild("Weight")
     if not weightFolder then return end
 
-    local v1 = p1:Clone()
-    v1.Name = p2
-    v1.Parent = weightFolder
+    local container = Instance.new("Folder")
+    container.Name = p2
+    container.Parent = weightFolder
+
+    local clonedValue = p1:Clone()
+    clonedValue.Name = "Value"
+    clonedValue.Parent = container
 end
 
 RemoveModifier = function(p3, p4)
@@ -131,9 +135,9 @@ RemoveModifier = function(p3, p4)
     local weightFolder = modifiersFolder:FindFirstChild("Weight")
     if not weightFolder then return end
 
-    local modifier = weightFolder:FindFirstChild(p4)
-    if modifier then
-        modifier:Destroy()
+    local modifierContainer = weightFolder:FindFirstChild(p4)
+    if modifierContainer then
+        modifierContainer:Destroy()
     end
 end
 
