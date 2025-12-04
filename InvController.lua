@@ -224,5 +224,6 @@ function MainFunction.AddToInvLOL(p18)
         end
     end)
     
-    return itemAdded
+    return MainFunction
 end
+
