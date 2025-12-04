@@ -139,91 +139,57 @@ local MainFunction = {}
 
 function MainFunction.AddToInvLOL(p18)
     local Background = FindBackground()
-    if not Background then return false end
-    
-    local Inv = Background:WaitForChild("Inv", 5)
-    if not Inv then return false end
-    
-    -- Check if we're already busy
-    if _G.databusy then return false end
-    
-    Background.Saving.Visible = true
-    _G.databusy = true
-    
-    local itemAdded = false
-    
-    -- Small delay to appear more natural
-    wait(0.1)
-    
-    local newItem = p18:Clone()
-    if not newItem then 
-        _G.databusy = false
-        Background.Saving.Visible = false
-        return false 
-    end
-    
-    -- Validate configuration exists
-    local config = newItem:FindFirstChild("Configuration")
-    if config then
-        local replicatedObj = config:FindFirstChild("ReplicatedStorageObject")
-        if replicatedObj then
-            replicatedObj.Value = p18
-        end
-    end
-    
-    local interactClone = newItem:FindFirstChild("Interact")
-    for i = 1, 21 do
-        local success, err = pcall(function()
-            local slot = Inv:FindFirstChild(tostring(i))
-            if slot and not slot:FindFirstChild("Interact") and not itemAdded then
-                itemAdded = true
-                wait(0.05)
-                if newItem.Configuration and newItem.Configuration:FindFirstChild("Weight") then
-                    AddModifier(newItem.Configuration.Weight, newItem.Name)
-                end
-
-                newItem.Parent = slot
-                
-                if interactClone then
-                    local clonedInteract = interactClone:Clone()
-                    clonedInteract.Parent = slot
-                    clonedInteract.Position = clonedInteract.Position - UDim2.new(0, 0, 0.1, 0)
-                end
-                local imageLabel = slot:FindFirstChild("Image")
-                if imageLabel and newItem:FindFirstChild("Decal") then
-                    imageLabel.Image = newItem.Decal.Image
-                end
-                
-                local stackLabel = slot:FindFirstChild("Stack")
-                if stackLabel then
-                    local stackValue = newItem.Configuration:FindFirstChild("Stack")
-                    if stackValue then
-                        stackLabel.Text = stackValue.Value
-                        stackLabel.Visible = true
-                    else
-                        stackLabel.Visible = false
+    local Inv = Background:WaitForChild("Inv")
+    local v125 = false
+    if not _G.databusy and true then
+        Background.Saving.Visible = true
+        _G.databusy = true
+        local v126 = p18:Clone()
+        v126:WaitForChild("Configuration"):WaitForChild("ReplicatedStorageObject").Value = p18
+        local v127 = v126.Interact:Clone()
+        for v128 = 1, 21 do
+            pcall(function()
+                local v129 = Inv[v128]
+                if not v129:FindFirstChild("Interact") and not v125 then
+                    v125 = true
+                    AddModifier(v126.Configuration.Weight, v126.Name)
+                    v126.Parent = v129
+                    v127.Parent = v129
+                    v127.Position = v127.Position - UDim2.new(0, 0, 0.1, 0)
+                    pcall(function()
+                        v129:FindFirstChild("Image").Image = v126.Decal.Image
+                        local Weight = Instance.new('NumberValue', l__LocalPlayer__1.Character.Modifiers.Weight)
+                        Weight.Name = p18.Name
+                    end)
+                    v129.Stack.Visible = false
+                    if v126.Configuration:FindFirstChild("Stack") then
+                        v129.Stack.Text = v126.Configuration.Stack.Value
+                        v129.Stack.Visible = true
                     end
                 end
-            end
-        end)
-        
-        if not success then
-        end
-        wait(0.01)
-    end
-    spawn(function()
-        _G.databusy = false
-        if Background and Background:FindFirstChild("Saving") then
-            Background.Saving.Visible = false
-        end
-        if itemAdded then
-            wait(0.5)
-            pcall(function()
-                AddToDataStore()
             end)
         end
-    end)
-    
-    return MainFunction
+    end
+    spawn(
+        function()
+            for v130 = 0, 5 do
+                wait(1)
+                if _G.databusy == false then
+                    break
+                end
+            end
+            _G.databusy = false
+            Background.Saving.Visible = false
+        end
+    )
+    if v125 ~= false then
+        AddToDataStore()
+        _G.databusy = false
+        return true
+    end
+    AddToDataStore()
+    _G.databusy = false
+    return false
 end
 
+return MainFunction
