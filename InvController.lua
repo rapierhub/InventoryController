@@ -94,18 +94,28 @@ end
 
 AddModifier = function(p1, p2)
     if not p1 or not p1.Parent then return end
+    
+    local modifiersFolder = workspace:FindFirstChild("Modifiers")
+    if not modifiersFolder then return end
+
+    local weightFolder = modifiersFolder:FindFirstChild("Weight")
+    if not weightFolder then return end
+
     local v1 = p1:Clone()
-    v1.Parent = p1.Parent
     v1.Name = p2
+    v1.Parent = weightFolder
 end
 
 RemoveModifier = function(p3, p4)
-    if not p3 or not p3.Parent then return end
-    local v2 = p3.Parent:FindFirstChild(p3.Name)
-    if not v2 then return end
-    local v3 = v2:FindFirstChild(p4)
-    if v3 then
-        v3:Destroy()
+    local modifiersFolder = workspace:FindFirstChild("Modifiers")
+    if not modifiersFolder then return end
+
+    local weightFolder = modifiersFolder:FindFirstChild("Weight")
+    if not weightFolder then return end
+
+    local modifier = weightFolder:FindFirstChild(p4)
+    if modifier then
+        modifier:Destroy()
     end
 end
 
