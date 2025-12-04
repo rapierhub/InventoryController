@@ -1,187 +1,152 @@
 local l__LocalPlayer__1 = game.Players.LocalPlayer
-local dataBusy = false
 
-local function getRemote()
-    return game.ReplicatedStorage:FindFirstChild("YourRemoteFunction") or
-           game.Workspace:FindFirstChild("RemoteFunction")
+local function findRemote(RemoteType)
+    for _, v in pairs(l__LocalPlayer__1:GetChildren()) do
+        local name = v.Name:lower()
+        if v.ClassName == RemoteType and (name:find("server") or name:find("function") or name:find("event")) then
+            return v
+        end
+    end
 end
 
-function FindBackground()
-    local gui = l__LocalPlayer__1:FindFirstChild("PlayerGui")
-    if not gui then return end
-    
-    for _, inst in pairs(gui:GetDescendants()) do
-        if ((inst.Name == 'Inv' or inst.Name == 'Equipped') and 
-            (inst.Parent and (inst.Parent:IsA('Frame') or inst.Parent:IsA('ImageLabel')))) then
+local function FindBackground()
+    for _, inst in pairs(l__LocalPlayer__1.PlayerGui:GetDescendants()) do
+        if (inst.Name == "Inv" or inst.Name == "Equipped") and (inst.Parent.ClassName == "Frame" or inst.Parent.ClassName == "ImageLabel") then
             return inst.Parent
         end
     end
 end
 
-function AddToDataStore()
+local u3 = {
+    Equipped = {},
+    Inventory = {},
+    Body = {}
+}
+
+local function AddToDataStore()
+    local anims = require(l__LocalPlayer__1.Character:WaitForChild("Animations"))
+    local mods = require(l__LocalPlayer__1.Character:WaitForChild("Modifiers"))
     local Background = FindBackground()
-    if not Background then return end
+    local Equipped = Background:WaitForChild("Equipped")
+    local Body = Background:WaitForChild("Body")
+    local Inv = Background:WaitForChild("Inv")
 
-    local Equipped = Background:FindFirstChild("Equipped")
-    local Body = Background:FindFirstChild("Body")
-    local Inv = Background:FindFirstChild("Inv")
-
-    if not (Equipped and Body and Inv) then return end
-
-    local u3 = {
-        Equipped = {},
-        Inventory = {},
-        Body = {}
-    }
-
-    for i, slot in ipairs(Equipped:GetChildren()) do
-        local tool = slot:FindFirstChildWhichIsA("Tool")
-        if tool then
-            local config = tool:FindFirstChild("Configuration")
-            local stackValue = config and config:FindFirstChild("Stack")
-            u3.Equipped[i] = {
-                Name = tool.Name,
-                Stack = stackValue and stackValue.Value or 0
-            }
-        else
-            u3.Eipped[i] = { Name = nil, Stack = nil }
+    local function processContainer(container, targetTable)
+        local children = container:GetChildren()
+        for i = 1, #children do
+            local entry = { Name = "", Stack = 0 }
+            local tool = nil
+            local items = children[i]:GetChildren()
+            for j = 1, #items do
+                if items[j]:IsA("Tool") then
+                    tool = items[j]
+                    break
+                end
+            end
+            if tool then
+                local stackObj = tool.Configuration:FindFirstChild("Stack")
+                entry.Name = tool.Name
+                entry.Stack = stackObj and stackObj.Value or 0
+            else
+                entry.Name = nil
+                entry.Stack = nil
+            end
+            if container == Body then
+                targetTable[children[i].LayoutOrder] = entry
+            else
+                targetTable[i] = entry
+            end
         end
     end
 
-    for i, slot in ipairs(Inv:GetChildren()) do
-        local tool = slot:FindFirstChildWhichIsA("Tool")
-        if tool then
-            local config = tool:FindFirstChild("Configuration")
-            local stackValue = config and config:FindFirstChild("Stack")
-            u3.Inventory[i] = {
-                Name = tool.Name,
-                Stack = stackValue and stackValue.Value or 0
-            }
-        else
-            u3.Inventory[i] = { Name = nil, Stack = nil }
-        end
-    end
+    processContainer(Equipped, u3.Equipped)
+    processContainer(Inv, u3.Inventory)
+    processContainer(Body, u3.Body)
 
-    for i, slot in ipairs(Body:GetChildren()) do
-        local tool = slot:FindFirstChildWhichIsA("Tool")
-        if tool then
-            local config = tool:FindFirstChild("Configuration")
-            local stackValue = config and config:FindFirstChild("Stack")
-            local layoutOrder = slot:FindFirstChild("LayoutOrder") and slot.LayoutOrder or i
-            u3.Body[layoutOrder] = {
-                Name = tool.Name,
-                Stack = stackValue and stackValue.Value or 0
-            }
-        else
-            u3.Body[i] = { Name = nil, Stack = nil }
-        end
+    local remoteFunc = findRemote("RemoteFunction")
+    if remoteFunc then
+        remoteFunc:InvokeServer("updateStats", u3)
     end
+    Background.Saving.Visible = false
+end
 
-    local remote = getRemote()
-    if remote and remote:IsA("RemoteFunction") then
-        pcall(function()
-            local method = string.sub("xupdateStatsx", 2, -2)
-            remote:InvokeServer(method, u3)
-        end)
+local function AddModifier(template, name)
+    local clone = template:Clone()
+    clone.Parent = template.Parent
+    clone.Name = name
+end
+
+local function RemoveModifier(parentObj, modifierName)
+    local folder = parentObj:FindFirstChild(parentObj.Name)
+    if not folder then return end
+    local mod = folder:FindFirstChild(modifierName)
+    if mod then
+        mod:Destroy()
     end
-
-    pcall(function()
-        if Background:FindFirstChild("Saving") then
-            Background.Saving.Visible = false
-        end
-    end)
 end
 
 local MainFunction = {}
 
-function MainFunction.AddToInvLOL(p18)
-    if dataBusy then return false end
-    if not p18 then return false end
-
-    dataBusy = true
-    
+function MainFunction.AddToInvLOL(itemToAdd)
     local Background = FindBackground()
-    if not Background then 
-        dataBusy = false
-        return false 
-    end
+    local Inv = Background:WaitForChild("Inv")
+    local added = false
 
-    local Inv = Background:FindFirstChild("Inv")
-    if not Inv then 
-        dataBusy = false
-        return false 
-    end
+    if not _G.__inv_lock then
+        Background.Saving.Visible = true
+        _G.__inv_lock = true
 
-    pcall(function()
-        if Background:FindFirstChild("Saving") then
-            Background.Saving.Visible = true
-        end
-    end)
+        local clonedItem = itemToAdd:Clone()
+        local config = clonedItem:WaitForChild("Configuration")
+        config:WaitForChild("ReplicatedStorageObject").Value = itemToAdd
 
-    local itemAdded = false
-    local v126 = p18:Clone()
+        local interactClone = clonedItem.Interact:Clone()
 
-    pcall(function()
-        local config = v126:FindFirstChild("Configuration")
-        if config then
-            local repObj = config:FindFirstChild("ReplicatedStorageObject")
-            if repObj then
-                repObj.Value = p18
-            end
-        end
-    end)
+        for i = 1, 21 do
+            pcall(function()
+                local slot = Inv[i]
+                if not slot:FindFirstChild("Interact") and not added then
+                    added = true
+                    AddModifier(clonedItem.Configuration.Weight, clonedItem.Name)
+                    clonedItem.Parent = slot
+                    interactClone.Parent = slot
+                    interactClone.Position = interactClone.Position - UDim2.new(0, 0, 0.1, 0)
 
-    local v127 = v126:FindFirstChild("Interact") and v126.Interact:Clone()
+                    pcall(function()
+                        slot:FindFirstChild("Image").Image = clonedItem.Decal.Image
+                        local weightVal = Instance.new("NumberValue")
+                        weightVal.Name = itemToAdd.Name
+                        weightVal.Parent = l__LocalPlayer__1.Character:WaitForChild("Modifiers").Weight
+                    end)
 
-    for i = 1, 21 do
-        local slot = Inv:FindFirstChild(tostring(i))
-        if slot and not slot:FindFirstChild("Interact") and not itemAdded then
-            itemAdded = true
-
-            v126.Parent = slot
-
-            if v127 then
-                v127.Parent = slot
-                v127.Position = v127.Position - UDim2.new(0, 0, 0.1, 0)
-            end
-
-            local imageLabel = slot:FindFirstChild("Image")
-            local decal = v126:FindFirstChild("Decal")
-            if imageLabel and decal then
-                imageLabel.Image = decal.Image
-            end
-
-            local stackLabel = slot:FindFirstChild("Stack")
-            if stackLabel then
-                local stackValue = v126:FindFirstChild("Configuration") and v126.Configuration:FindFirstChild("Stack")
-                if stackValue then
-                    stackLabel.Text = tostring(stackValue.Value)
-                    stackLabel.Visible = true
-                else
-                    stackLabel.Visible = false
+                    slot.Stack.Visible = false
+                    local stackObj = clonedItem.Configuration:FindFirstChild("Stack")
+                    if stackObj then
+                        slot.Stack.Text = stackObj.Value
+                        slot.Stack.Visible = true
+                    end
                 end
-            end
-
-            break
+            end)
         end
     end
 
     spawn(function()
-        wait(0.5)
-        dataBusy = false
-        pcall(function()
-            if Background:FindFirstChild("Saving") then
-                Background.Saving.Visible = false
-            end
-        end)
+        for i = 1, 5 do
+            wait(1)
+            if not _G.__inv_lock then break end
+        end
+        _G.__inv_lock = false
+        Background.Saving.Visible = false
     end)
 
-    if itemAdded then
+    if added then
         AddToDataStore()
+        _G.__inv_lock = false
         return true
     end
 
     AddToDataStore()
+    _G.__inv_lock = false
     return false
 end
 
