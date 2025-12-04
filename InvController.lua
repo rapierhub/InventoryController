@@ -7,36 +7,30 @@ local function getRemote()
 end
 
 function FindBackground()
-    for _,inst in pairs(l__LocalPlayer__1.PlayerGui:GetDescendants()) do
-        if((inst.Name == 'Inv' or inst.Name == 'Equipped') and (inst.Parent.ClassName == 'Frame' or inst.Parent.ClassName == 'ImageLabel')) then
+    for _, inst in pairs(l__LocalPlayer__1.PlayerGui:GetDescendants()) do
+        if ((inst.Name == 'Inv' or inst.Name == 'Equipped') and 
+            (inst.Parent:IsA('Frame') or inst.Parent:IsA('ImageLabel'))) then
             return inst.Parent
         end
     end
 end
 
 function AddToDataStore()
-    local success, v40 = pcall(function() 
-        return require(l__LocalPlayer__1.Character:WaitForChild("Animations"))
-    end)
-    local success, v41 = pcall(function() 
-        return require(l__LocalPlayer__1.Character:WaitForChild("Modifiers"))
-    end)
-    
     local Background = FindBackground()
     if not Background then return end
-    
+
     local Equipped = Background:FindFirstChild("Equipped")
     local Body = Background:FindFirstChild("Body")
     local Inv = Background:FindFirstChild("Inv")
-    
+
     if not (Equipped and Body and Inv) then return end
-    
+
     local u3 = {
         Equipped = {},
         Inventory = {},
         Body = {}
     }
-    
+
     for i, slot in ipairs(Equipped:GetChildren()) do
         local tool = slot:FindFirstChildWhichIsA("Tool")
         if tool then
@@ -50,7 +44,7 @@ function AddToDataStore()
             u3.Equipped[i] = { Name = nil, Stack = nil }
         end
     end
-    
+
     for i, slot in ipairs(Inv:GetChildren()) do
         local tool = slot:FindFirstChildWhichIsA("Tool")
         if tool then
@@ -64,7 +58,7 @@ function AddToDataStore()
             u3.Inventory[i] = { Name = nil, Stack = nil }
         end
     end
-    
+
     for i, slot in ipairs(Body:GetChildren()) do
         local tool = slot:FindFirstChildWhichIsA("Tool")
         if tool then
@@ -81,13 +75,13 @@ function AddToDataStore()
     end
 
     local remote = getRemote()
-    if remote and remote.ClassName == "RemoteFunction" then
+    if remote and remote:IsA("RemoteFunction") then
         local success, err = pcall(function()
             local method = string.sub("xupdateStatsx", 2, -2)
             remote:InvokeServer(method, u3)
         end)
     end
-    
+
     if Background:FindFirstChild("Saving") then
         Background.Saving.Visible = false
     end
@@ -112,73 +106,82 @@ local MainFunction = {}
 
 function MainFunction.AddToInvLOL(p18)
     if dataBusy then return false end
-    
+
     dataBusy = true
     local Background = FindBackground()
     if not Background then 
         dataBusy = false
         return false 
     end
-    
+
     local Inv = Background:FindFirstChild("Inv")
     if not Inv then 
         dataBusy = false
         return false 
     end
-    
+
     if Background:FindFirstChild("Saving") then
         Background.Saving.Visible = true
     end
-    
+
     local itemAdded = false
     local v126 = p18:Clone()
-    
+
     local success, err = pcall(function()
-        local config = v126:WaitForChild("Configuration")
-        local repObj = config:WaitForChild("ReplicatedStorageObject")
-        repObj.Value = p18
+        local config = v126:FindFirstChild("Configuration")
+        if config then
+            local repObj = config:FindFirstChild("ReplicatedStorageObject")
+            if repObj then
+                repObj.Value = p18
+            end
+        end
     end)
-    
+
     if not success then
         dataBusy = false
         return false
     end
-    
+
     local v127 = v126:FindFirstChild("Interact") and v126.Interact:Clone()
-    
+
     for i = 1, 21 do
         local slot = Inv:FindFirstChild(tostring(i))
         if slot and not slot:FindFirstChild("Interact") and not itemAdded then
             itemAdded = true
-            
-            AddModifier(v126.Configuration.Weight, v126.Name)
+
+            local weightMod = v126:FindFirstChild("Configuration") and v126.Configuration:FindFirstChild("Weight")
+            if weightMod then
+                AddModifier(weightMod, v126.Name)
+            end
+
             v126.Parent = slot
-            
+
             if v127 then
                 v127.Parent = slot
                 v127.Position = v127.Position - UDim2.new(0, 0, 0.1, 0)
             end
-            
+
             local imageLabel = slot:FindFirstChild("Image")
-            if imageLabel and v126:FindFirstChild("Decal") then
-                imageLabel.Image = v126.Decal.Image
+            local decal = v126:FindFirstChild("Decal")
+            if imageLabel and decal then
+                imageLabel.Image = decal.Image
             end
-            
+
             local stackLabel = slot:FindFirstChild("Stack")
             if stackLabel then
-                local stackValue = v126.Configuration:FindFirstChild("Stack")
+                local stackValue = v126:FindFirstChild("Configuration") and v126.Configuration:FindFirstChild("Stack")
                 if stackValue then
-                    stackLabel.Text = stackValue.Value
+                    stackLabel.Text = tostring(stackValue.Value)
                     stackLabel.Visible = true
                 else
                     stackLabel.Visible = false
                 end
             end
-            
+
             break
         end
     end
-    
+
     spawn(function()
         wait(0.5)
         dataBusy = false
@@ -186,12 +189,12 @@ function MainFunction.AddToInvLOL(p18)
             Background.Saving.Visible = false
         end
     end)
-    
+
     if itemAdded then
         AddToDataStore()
         return true
     end
-    
+
     AddToDataStore()
     return false
 end
