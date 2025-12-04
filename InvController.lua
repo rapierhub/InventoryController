@@ -7,9 +7,12 @@ local function getRemote()
 end
 
 function FindBackground()
-    for _, inst in pairs(l__LocalPlayer__1.PlayerGui:GetDescendants()) do
+    local gui = l__LocalPlayer__1:FindFirstChild("PlayerGui")
+    if not gui then return end
+    
+    for _, inst in pairs(gui:GetDescendants()) do
         if ((inst.Name == 'Inv' or inst.Name == 'Equipped') and 
-            (inst.Parent:IsA('Frame') or inst.Parent:IsA('ImageLabel'))) then
+            (inst.Parent and (inst.Parent:IsA('Frame') or inst.Parent:IsA('ImageLabel')))) then
             return inst.Parent
         end
     end
@@ -76,24 +79,28 @@ function AddToDataStore()
 
     local remote = getRemote()
     if remote and remote:IsA("RemoteFunction") then
-        local success, err = pcall(function()
+        pcall(function()
             local method = string.sub("xupdateStatsx", 2, -2)
             remote:InvokeServer(method, u3)
         end)
     end
 
-    if Background:FindFirstChild("Saving") then
-        Background.Saving.Visible = false
-    end
+    pcall(function()
+        if Background:FindFirstChild("Saving") then
+            Background.Saving.Visible = false
+        end
+    end)
 end
 
 AddModifier = function(p1, p2)
+    if not p1 or not p1.Parent then return end
     local v1 = p1:Clone()
     v1.Parent = p1.Parent
     v1.Name = p2
 end
 
 RemoveModifier = function(p3, p4)
+    if not p3 or not p3.Parent then return end
     local v2 = p3.Parent:FindFirstChild(p3.Name)
     if not v2 then return end
     local v3 = v2:FindFirstChild(p4)
@@ -106,8 +113,10 @@ local MainFunction = {}
 
 function MainFunction.AddToInvLOL(p18)
     if dataBusy then return false end
+    if not p18 then return false end
 
     dataBusy = true
+    
     local Background = FindBackground()
     if not Background then 
         dataBusy = false
@@ -120,14 +129,16 @@ function MainFunction.AddToInvLOL(p18)
         return false 
     end
 
-    if Background:FindFirstChild("Saving") then
-        Background.Saving.Visible = true
-    end
+    pcall(function()
+        if Background:FindFirstChild("Saving") then
+            Background.Saving.Visible = true
+        end
+    end)
 
     local itemAdded = false
     local v126 = p18:Clone()
 
-    local success, err = pcall(function()
+    pcall(function()
         local config = v126:FindFirstChild("Configuration")
         if config then
             local repObj = config:FindFirstChild("ReplicatedStorageObject")
@@ -136,11 +147,6 @@ function MainFunction.AddToInvLOL(p18)
             end
         end
     end)
-
-    if not success then
-        dataBusy = false
-        return false
-    end
 
     local v127 = v126:FindFirstChild("Interact") and v126.Interact:Clone()
 
@@ -185,9 +191,11 @@ function MainFunction.AddToInvLOL(p18)
     spawn(function()
         wait(0.5)
         dataBusy = false
-        if Background:FindFirstChild("Saving") then
-            Background.Saving.Visible = false
-        end
+        pcall(function()
+            if Background:FindFirstChild("Saving") then
+                Background.Saving.Visible = false
+            end
+        end)
     end)
 
     if itemAdded then
